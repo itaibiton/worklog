@@ -20,33 +20,43 @@ import {
 import { Input } from "./input";
 import { Plus } from "lucide-react";
 import { Separator } from "./separator";
+import { useState } from "react";
+import { useToast } from "./use-toast";
 
 const frameworks = [
 	{
-		value: "next.js",
-		label: "Next.js",
+		value: "work",
+		label: "Work",
 	},
 	{
-		value: "sveltekit",
-		label: "SvelteKit",
-	},
-	{
-		value: "nuxt.js",
-		label: "Nuxt.js",
-	},
-	{
-		value: "remix",
-		label: "Remix",
-	},
-	{
-		value: "astro",
-		label: "Astro",
+		value: "personal",
+		label: "Personal",
 	},
 ];
 
 export function ComboboxDemo() {
 	const [open, setOpen] = React.useState(false);
 	const [value, setValue] = React.useState("");
+	const [label, setLabel] = React.useState("");
+
+	const { toast } = useToast();
+
+	const [updatedFrameworks, setUpdatedFrameworks] = useState([...frameworks]);
+
+	const addLabel = (label: { value: string; label: string }) => {
+		console.log("here", label);
+		if (updatedFrameworks.find((lb) => lb.value === label.value)) {
+			toast({
+				title: "Error",
+				description: "This label already exists!",
+			});
+		} else {
+			setUpdatedFrameworks((prev) => [
+				...prev,
+				{ label: label.label, value: label.value },
+			]);
+		}
+	};
 
 	return (
 		<Popover open={open} onOpenChange={setOpen}>
@@ -55,20 +65,21 @@ export function ComboboxDemo() {
 					variant="outline"
 					role="combobox"
 					aria-expanded={open}
-					className="w-[200px] justify-between"
+					className="justify-between"
 				>
 					{value
-						? frameworks.find((framework) => framework.value === value)?.label
-						: "Select framework..."}
+						? updatedFrameworks.find((framework) => framework.value === value)
+								?.label
+						: "Select label..."}
 					<CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
 				</Button>
 			</PopoverTrigger>
-			<PopoverContent className="w-[200px] p-0">
+			<PopoverContent className="p-0">
 				<Command>
-					<CommandInput placeholder="Search framework..." className="h-9" />
-					<CommandEmpty>No framework found.</CommandEmpty>
-					<CommandGroup>
-						{frameworks.map((framework) => (
+					<CommandInput placeholder="Search label..." className="h-9" />
+					<CommandEmpty>No label found.</CommandEmpty>
+					<CommandGroup className="px-0 pt-2">
+						{updatedFrameworks.map((framework) => (
 							<CommandItem
 								key={framework.value}
 								value={framework.value}
@@ -77,7 +88,7 @@ export function ComboboxDemo() {
 									setOpen(false);
 								}}
 							>
-								{framework.label}
+								<p className="px-2">{framework.label}</p>
 								<CheckIcon
 									className={cn(
 										"ml-auto h-4 w-4",
@@ -88,9 +99,23 @@ export function ComboboxDemo() {
 						))}
 						<Separator className="my-2" />
 						<CommandItem key="Command add">
-							<div className="flex gap-1 items-center">
-								<Input placeholder="Add new label..." />
-								<Button variant="ghost" className="p-1">
+							<div className="flex gap-1 items-center w-full">
+								<Input
+									placeholder="Add new label..."
+									onChange={(e) => setLabel(e?.target?.value)}
+									className="w-full"
+								/>
+								<Button
+									onClick={() => addLabel({ label: label, value: label })}
+									variant="ghost"
+									className="p-1"
+									type="submit"
+									onKeyDown={(e) => {
+										if (e.key === "Enter") {
+											addLabel({ label: label, value: label });
+										}
+									}}
+								>
 									<Plus width={16} height={16} />
 								</Button>
 							</div>
